@@ -8,9 +8,10 @@ app.use(express.json());
 
 // 1. CONFIGURAÇÃO DO BANCO DE DADOS (SUPABASE)
 const dbConfig = {
-    host: 'db.zsnkisiwrmbjwyqrhzlr.supabase.co', 
-    port: 5432,
-    user: 'postgres',
+    // Usando o host do Pooler para evitar erro de rede (IPv6)
+    host: 'aws-0-sa-east-1.pooler.supabase.com', 
+    port: 6543, // <--- IMPORTANTE: A porta muda para 6543 no pooler
+    user: 'postgres.zsnkisiwrmbjwyqrhzlr', // <--- O usuário precisa do ID do projeto no pooler
     password: 'Senhapizza:123', 
     database: 'postgres',
     ssl: { rejectUnauthorized: false }
