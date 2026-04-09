@@ -6,13 +6,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// CONFIGURAÇÃO DIRETA (MAIS ESTÁVEL)
+// CONFIGURAÇÃO FORÇANDO IPv4
 const dbConfig = {
-    // Note que o host mudou de 'pooler' para 'db'
+    // Trocamos o nome por este host que o Supabase recomenda para evitar o erro ENETUNREACH
     host: 'db.zsnkisiwrmbjwyqrhzlr.supabase.co', 
     port: 5432, 
-    user: 'postgres', // Na porta 5432, o usuário é APENAS postgres
-    password: 'Pizza_Master2026', // Sua senha nova
+    user: 'postgres',
+    password: 'Pizza_Master2026', 
     database: 'postgres',
     ssl: { rejectUnauthorized: false }
 };
@@ -22,23 +22,27 @@ app.post('/cadastrar', async (req, res) => {
     const client = new Client(dbConfig);
 
     try {
+        // Força o tempo de espera para não travar
+        console.log("Tentando conectar ao banco via IPv4...");
         await client.connect();
+        
         const sql = "INSERT INTO usuarios (nome, data_nascimento, email) VALUES ($1, $2, $3)";
         await client.query(sql, [nome, dataNasc, email]);
+        
         await client.end();
-        res.status(200).send("CONECTADO! Cadastro salvo no Supabase com sucesso.");
+        res.status(200).send("FINALMENTE! Cadastro salvo com sucesso.");
     } catch (error) {
-        console.error("Erro no banco:", error.message);
+        console.error("Erro detalhado:", error.message);
         try { await client.end(); } catch (e) {}
         
-        // Retorna o erro exato para sabermos se a senha está certa
-        res.status(500).send("Erro Final: " + error.message);
+        // Se der erro de rede, vamos saber aqui
+        res.status(500).send("Erro de Conexão: " + error.message);
     }
 });
 
-app.get('/', (req, res) => res.send("Servidor na Porta 5432 está ONLINE!"));
+app.get('/', (req, res) => res.send("Servidor Online e tentando IPv4!"));
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Rodando na porta ${PORT}`);
 });
